@@ -81,40 +81,40 @@ _, thres = cv2.threshold(sobel, 30, 255, cv2.THRESH_BINARY)
 #         cv2.line(road, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
 # adjustment HoughLinesP
-# cv2.namedWindow("HoughLinesP", cv2.WINDOW_NORMAL)
-# cv2.createTrackbar("line_thres", "HoughLinesP", 100, 500, nothing)
-# cv2.createTrackbar("min_line", "HoughLinesP", 100, 500, nothing)
-# cv2.createTrackbar("max_gap", "HoughLinesP", 1, 100, nothing)
-#
-# while True:
-#     line_thres = cv2.getTrackbarPos("line_thres", "HoughLinesP")
-#     min_line = cv2.getTrackbarPos("min_line", "HoughLinesP")
-#     max_gap = cv2.getTrackbarPos("max_gap", "HoughLinesP")
-#
-#     linesP = cv2.HoughLinesP(
-#         image=thres,
-#         rho=1,
-#         theta=np.pi/180,
-#         threshold=line_thres,
-#         minLineLength=min_line,
-#         maxLineGap=max_gap
-#     )
+cv2.namedWindow("HoughLinesP", cv2.WINDOW_NORMAL)
+cv2.createTrackbar("line_thres", "HoughLinesP", 100, 500, nothing)
+cv2.createTrackbar("min_line", "HoughLinesP", 100, 500, nothing)
+cv2.createTrackbar("max_gap", "HoughLinesP", 1, 100, nothing)
 
-#     try:
-#         road_cp = road.copy()
-#         for line in linesP:
-#             for x1, y1, x2, y2 in line:
-#                 cv2.line(road_cp, (x1, y1), (x2, y2), (255, 0, 0), 5)
-#
-#         cv2.imshow("HoughLinesP", road_cp)
-#         if cv2.waitKey(1) == ord('q'):
-#             break
-#
-#     except TypeError:
-#         cv2.setTrackbarPos("line_thres", "HoughLinesP", 100)
-#         cv2.setTrackbarPos("min_line", "HoughLinesP", 100)
-#         cv2.setTrackbarPos("max_gap", "HoughLinesP", 1)
-#         continue
+while True:
+    line_thres = cv2.getTrackbarPos("line_thres", "HoughLinesP")
+    min_line = cv2.getTrackbarPos("min_line", "HoughLinesP")
+    max_gap = cv2.getTrackbarPos("max_gap", "HoughLinesP")
+
+    linesP = cv2.HoughLinesP(
+        image=thres,
+        rho=1,
+        theta=np.pi/180,
+        threshold=line_thres,
+        minLineLength=min_line,
+        maxLineGap=max_gap
+    )
+
+    try:
+        road_cp = road.copy()
+        for line in linesP:
+            for x1, y1, x2, y2 in line:
+                cv2.line(road_cp, (x1, y1), (x2, y2), (255, 0, 0), 5)
+
+        cv2.imshow("HoughLinesP", road_cp)
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    except TypeError:
+        cv2.setTrackbarPos("line_thres", "HoughLinesP", 100)
+        cv2.setTrackbarPos("min_line", "HoughLinesP", 100)
+        cv2.setTrackbarPos("max_gap", "HoughLinesP", 1)
+        continue
 
 # test HoughLinesP
 line_thres = 375
@@ -138,7 +138,7 @@ m2 = (857 - 629) / (998 - 509)
 b1 = 843 - m1 * 3
 b2 = 857 - m2 * 998
 
-crop = np.zeros(road.shape, dtype=np.uint8)
+crop = np.ones(road.shape, dtype=np.uint8) * 255
 
 points = list()
 for j in range(0, y):

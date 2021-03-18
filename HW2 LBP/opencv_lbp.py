@@ -77,6 +77,7 @@ class MyLBP(object):
         road_y: 第 y 個的 cells 位置
         road_x: 第 x 個的 cells 位置
         """
+
         y, x, _, _ = self.cell_top_all.shape
         sample = self.cell_top_all[road_y, road_x]  # 該區塊的 LBP 前五個最大值
         res_img = np.zeros((self.y, self.x), dtype=np.uint8)
@@ -98,8 +99,8 @@ class MyLBP(object):
                 x1 = i * self.cells
                 x2 = x1 + self.cells
 
-                if color_error < 32:
-                    res_img[y1:y2, x1:x2] = self.lbp_img[y1:y2, x1:x2]
+                if color_error < 8:
+                    res_img[y1:y2, x1:x2] = self.img[y1:y2, x1:x2]
                 else:
                     res_img[y1:y2, x1:x2] = 255
 
@@ -229,13 +230,14 @@ road = cv2.imread(path)
 # use my lbp
 handle = MyLBP()
 gray = handle.to_gray(road)
-road_my_lbp = handle.lbp(rotate=True)
+road_my_lbp = handle.lbp(cells=10, rotate=True)
 # handle.local_histogram(85, 3)
 # handle.all_histogram()
-# result = handle.compare(85, 3)
+result = handle.compare(86, 4)
 print("spend time: %.3f s" % handle.spend_time())
 # spend time:  i9 -> 17.367 s, i5 -> 53.339 s
 
-cv2.imshow("Result", road_my_lbp)
+# cv2.imshow("MyLBP", road_my_lbp)
+cv2.imshow("Result", result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
