@@ -13,7 +13,7 @@ def output_img(img, text):
 
 
 # read image
-path = "E:/MyProgramming/Python/Practice/opencv_practice/road/road.jpg"
+path = "./road.jpg"
 road = cv2.imread(path)
 # print(road.shape)  # (1000, 1000, 3)
 

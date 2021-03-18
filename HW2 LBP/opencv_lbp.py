@@ -29,7 +29,7 @@ def output_img(img, text):
 
 
 class MyLBP(object):
-    def __init__(self, img):
+    def __init__(self):
         """初始化數值
         self.img: 輸入灰階圖片, 類型 numpy.ndarray
         self.y, self.x: 圖片的大小 length * width, 類型 int
@@ -43,14 +43,14 @@ class MyLBP(object):
         self.rotate_labels: 旋轉時當作一樣圖形, 類型 list, 元素 int
         """
 
-        self.img = img
-        self.y, self.x = img.shape
+        self.img = None
+        self.y, self.x = 0, 0
         self.size = None
         self.lbp_val = np.zeros(256, dtype=np.uint32)
         self.cells = None
         self.cell_val = np.zeros(256, dtype=np.uint8)
         self.cell_top_all = None
-        self.lbp_img = np.zeros(img.shape, dtype=np.uint8)
+        self.lbp_img = None
         self.start = time.time()
         self.rotate_labels = [
                 [0],
@@ -63,6 +63,14 @@ class MyLBP(object):
                 [254, 128, 191, 223, 239, 247, 251, 253],
                 [255]
             ]
+
+    def to_gray(self, img):
+        """圖片轉灰階"""
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        self.y, self.x = img_gray.shape
+        self.img = img_gray
+        self.lbp_img = np.zeros(img_gray.shape, dtype=np.uint8)
+        return img_gray
 
     def compare(self, road_y=None, road_x=None):
         """拿一個 cells 當樣本來和圖的其他地方比對
@@ -181,7 +189,6 @@ class MyLBP(object):
         """
         if y_axis and x_axis:
             target = self.lbp_img[y_axis*self.cells:(y_axis+1)*self.cells, x_axis*self.cells:(x_axis+1)*self.cells]
-            print(target)
             for y in range(0, self.cells):
                 for x in range(0, self.cells):
                     self.cell_val[target[y][x]] += 1
@@ -216,23 +223,19 @@ class MyLBP(object):
         return end - self.start
 
 
-path = "./road/road.jpg"
+path = "./road.jpg"
 road = cv2.imread(path)
 
 # use my lbp
-# step1:
-road_gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
-
-# step2 to 7:
-handle = MyLBP(road_gray)
+handle = MyLBP()
+gray = handle.to_gray(road)
 road_my_lbp = handle.lbp(rotate=True)
 # handle.local_histogram(85, 3)
 # handle.all_histogram()
-result = handle.compare(85, 3)
-# print("spend time: %.3f s" % handle.spend_time())
-# spend time:  17.367 s
+# result = handle.compare(85, 3)
+print("spend time: %.3f s" % handle.spend_time())
+# spend time:  i9 -> 17.367 s, i5 -> 53.339 s
 
-output_img(result, text="./road/road_my_lbp_compare_result")
-# cv2.imshow("Result", result)
+cv2.imshow("Result", road_my_lbp)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
