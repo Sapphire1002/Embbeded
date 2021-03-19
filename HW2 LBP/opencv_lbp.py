@@ -29,7 +29,7 @@ def output_img(img, text):
 
 
 class MyLBP(object):
-    def __init__(self):
+    def __init__(self, img):
         """初始化數值
         self.img: 輸入灰階圖片, 類型 numpy.ndarray
         self.y, self.x: 圖片的大小 length * width, 類型 int
@@ -43,14 +43,14 @@ class MyLBP(object):
         self.rotate_labels: 旋轉時當作一樣圖形, 類型 list, 元素 int
         """
 
-        self.img = None
-        self.y, self.x = 0, 0
+        self.img = img
+        self.y, self.x = img.shape
         self.size = None
         self.lbp_val = np.zeros(256, dtype=np.uint32)
         self.cells = None
         self.cell_val = np.zeros(256, dtype=np.uint8)
         self.cell_top_all = None
-        self.lbp_img = None
+        self.lbp_img = np.zeros(img.shape, dtype=np.uint8)
         self.start = time.time()
         self.rotate_labels = [
                 [0],
@@ -64,42 +64,31 @@ class MyLBP(object):
                 [255]
             ]
 
-    def to_gray(self, img):
-        """圖片轉灰階"""
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        self.y, self.x = img_gray.shape
-        self.img = img_gray
-        self.lbp_img = np.zeros(img_gray.shape, dtype=np.uint8)
-        return img_gray
-
     def compare(self, road_y=None, road_x=None):
         """拿一個 cells 當樣本來和圖的其他地方比對
         road_y: 第 y 個的 cells 位置
         road_x: 第 x 個的 cells 位置
         """
-
         y, x, _, _ = self.cell_top_all.shape
         sample = self.cell_top_all[road_y, road_x]  # 該區塊的 LBP 前五個最大值
         res_img = np.zeros((self.y, self.x), dtype=np.uint8)
-        sample = sample.T
 
-        # print(sample)
-        # [[127 224 252 248 255]
-        # [  1   1   3  23  72]]
+        sample = np.sort(sample[0])[4]
+        print(sample)
 
         # 用 sample 迭代 cell_top_all 寫相似演算法, 一樣給1, 反之0
         # 是馬路給 1, 不是馬路給 0
         for j in range(0, y):
             for i in range(0, x):
-                # 假設只取最大值, 且只有計算顏色
-                # for scale in range(4, 1, -1):
-                color_error = abs(max(sample[0]) - max(self.cell_top_all[j, i, 0]))
+                color_error = abs(sample - np.sort(self.cell_top_all[j, i, 0])[4])
+
                 y1 = j * self.cells
                 y2 = y1 + self.cells
                 x1 = i * self.cells
                 x2 = x1 + self.cells
 
-                if color_error < 8:
+                print(color_error)
+                if np.sum(color_error) == 0:
                     res_img[y1:y2, x1:x2] = self.img[y1:y2, x1:x2]
                 else:
                     res_img[y1:y2, x1:x2] = 255
@@ -110,7 +99,6 @@ class MyLBP(object):
         """處理 3x3 矩陣 二進制轉十進制
         以逆時針旋轉方式, 方向如下:
         右下, 右, 右上, 上, 左上, 左, 左下, 下
-
         考慮旋轉(10 進制表示):
         0: 0
         1: 128, 64, 32, 16, 8, 4, 2, 1
@@ -121,7 +109,6 @@ class MyLBP(object):
         6: 252, 126, 63, 159, 207, 231, 243, 249
         7: 254, 128, 191, 223, 239, 247, 251, 253
         8: 255
-
         不考慮旋轉:
         bits_matrix: 傳入 3x3 的二值矩陣
         return: lbp_value, 十進制整數
@@ -152,8 +139,8 @@ class MyLBP(object):
         """
         self.size = 2 * r + 1
         self.cells = cells
-        # img.shape = (1000, 1000), cell_top_all.shape = (100, 100, 5, 2)
-        self.cell_top_all = np.zeros((self.y // cells, self.x // cells, 5, 2), dtype=np.uint8)
+        # img.shape = (1000, 1000), cell_top_all.shape = (100, 100, 2, 5)
+        self.cell_top_all = np.zeros((self.y // cells, self.x // cells, 2, 5), dtype=np.int16)
 
         con_img = np.zeros((self.y+2, self.x+2), dtype=np.uint16)
         con_img[1:self.y+1, 1:self.x+1] = self.img
@@ -179,7 +166,7 @@ class MyLBP(object):
                     # 元素不足 5 個則向後面填充 0
                     top_five = np.pad(top_five, (0, 5-len(top_five)), 'constant')
                     top_count = np.pad(top_count, (0, 5-len(top_count)), 'constant')
-                self.cell_top_all[j, i] = np.array([top_five, top_count]).T
+                self.cell_top_all[j, i] = np.array([top_five, top_count])
 
         return self.lbp_img
 
@@ -224,20 +211,23 @@ class MyLBP(object):
         return end - self.start
 
 
-path = "./road.jpg"
+path = "./road/road.jpg"
 road = cv2.imread(path)
 
 # use my lbp
-handle = MyLBP()
-gray = handle.to_gray(road)
-road_my_lbp = handle.lbp(cells=10, rotate=True)
-# handle.local_histogram(85, 3)
-# handle.all_histogram()
-result = handle.compare(86, 4)
-print("spend time: %.3f s" % handle.spend_time())
-# spend time:  i9 -> 17.367 s, i5 -> 53.339 s
+# step1:
+road_gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
 
-# cv2.imshow("MyLBP", road_my_lbp)
-cv2.imshow("Result", result)
+# step2 to 7:
+handle = MyLBP(road_gray)
+road_my_lbp = handle.lbp(rotate=False)
+# handle.local_histogram(86, 5)
+# handle.all_histogram()
+result = handle.compare(86, 6)
+# print("spend time: %.3f s" % handle.spend_time())
+# spend time:  17.367 s
+
+output_img(result, text="./road/road_my_lbp_compare_result")
+# cv2.imshow("Result", result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
