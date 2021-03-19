@@ -142,7 +142,7 @@ for j in range(0, y):
     for i in range(0, x):
         if (m[0] * i - j + b[0] <= 0) and (m[1] * i - j + b[1] <= 0):
             crop[j, i] = road[j, i]
-output_img(crop, text="./road_result_crop")
+# output_img(crop, text="./road_result_crop")
 
 # last:
 # original -> gray -> sobel(ddpeth=-1, dx=1, dy=0, ksize=3) -> threshold(30, 255, THRESH_BINARY) ->
