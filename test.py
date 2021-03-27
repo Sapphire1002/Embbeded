@@ -31,6 +31,7 @@ cv.imshow("un", unknown)
 
 # 類別標記
 _, markers = cv.connectedComponents(sure_fg)
+print(markers.shape)
 
 # 為所有的標記加1，保證背景是0而不是1
 markers = markers + 1

@@ -8,8 +8,9 @@ def compare(img, sample, high=32, width=8):
     y, x = sample
     s = img[y:y+high, x:x+width]
 
-    # 統計 sample 的 LBP histogram
-    
+    # 統計 sample 的 LBP histogram feature vector
+
+
     pass
 
 
@@ -44,12 +45,14 @@ path = "C:/Users/iris2/Desktop/embbeded/HW3/road.jpg"
 road = cv2.imread(path)
 
 gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
+sobel = cv2.Sobel(gray, ddepth=-1, dx=0, dy=1, ksize=3)
+print(sobel)
 
 # LBP 程式
-road_lbp = lbp(gray)
-compare(road_lbp, sample=(860, 60))
+# road_lbp = lbp(gray)
+# compare(road_lbp, sample=(860, 60))
 
-cv2.imshow("test", road_lbp)
+cv2.imshow("test", sobel)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 

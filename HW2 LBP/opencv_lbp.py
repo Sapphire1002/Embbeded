@@ -211,20 +211,20 @@ class MyLBP(object):
         return end - self.start
 
 
-# path = "./road.jpg"
-# road = cv2.imread(path)
+path = "./road.jpg"
+road = cv2.imread(path)
 
 # use my lbp
 # step1:
-# road_gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
+road_gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
 
 # step2 to 7:
-# handle = MyLBP(road_gray)
-# road_my_lbp = handle.lbp(rotate=False)
-# handle.local_histogram(86, 6)
-# handle.all_histogram()
-# result = handle.compare(86, 6)
-# print("spend time: %.3f s" % handle.spend_time())
+handle = MyLBP(road_gray)
+road_my_lbp = handle.lbp(rotate=False)
+handle.local_histogram(86, 6)
+handle.all_histogram()
+result = handle.compare(86, 6)
+print("spend time: %.3f s" % handle.spend_time())
 
 # output_img(result, text="./road/road_my_lbp_compare_result")
 # cv2.imshow("Result", road_my_lbp)
