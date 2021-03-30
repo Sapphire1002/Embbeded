@@ -132,14 +132,16 @@ fg = compare(road_lbp, sample=(880, 90), high=64, width=32, condi=0.84)
 # cv2.imshow("fg", fg)
 
 # watershed
-# blur = cv2.GaussianBlur(gray, (5, 5), 0)
-# _, thres = cv2.threshold(blur, 0, 255, cv2.THRESH_OTSU+cv2.THRESH_BINARY_INV)
-# kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-# mb = cv2.morphologyEx(thres, cv2.MORPH_OPEN, kernel, iterations=2)
-# bg = cv2.dilate(mb, kernel, iterations=3)
+blur = cv2.GaussianBlur(gray, (5, 5), 0)
+_, thres = cv2.threshold(blur, 0, 255, cv2.THRESH_OTSU+cv2.THRESH_BINARY_INV)
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+mb = cv2.morphologyEx(thres, cv2.MORPH_OPEN, kernel, iterations=2)
+bg = cv2.dilate(mb, kernel, iterations=3)
 # cv2.imshow("bg", bg)
 
-# unknown = cv2.subtract(bg, fg)
+unknown = cv2.subtract(bg, fg)
+cv2.imshow("unknown", unknown)
+
 _, markers = cv2.connectedComponents(fg)
 print(np.unique(markers, return_counts=True))
 markers = cv2.watershed(road, markers=markers)
