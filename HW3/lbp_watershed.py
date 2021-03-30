@@ -1,10 +1,6 @@
-from scipy import signal
 import cv2
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics.pairwise import cosine_similarity as cos_sim
-sns.set()
 
 
 def compare(img, sample, high=32, width=8, hist=False, condi=0.5):
@@ -62,7 +58,7 @@ def compare(img, sample, high=32, width=8, hist=False, condi=0.5):
 
     # 存放 color 資訊的 陣列
     color = np.zeros(img.shape, dtype=np.uint8)
-    # 0 為不塗色, 1 為塗色
+    # 0 為不塗色, 255 為塗色
 
     img_y, img_x = img.shape
     for j in range(0, img_y // high):
@@ -121,38 +117,35 @@ def lbp(img):
     return lbp_img
 
 
-path = "./road/road.jpg"
+path = "./road.jpg"
 road = cv2.imread(path)
 
 gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
-# sobel = cv2.Sobel(gray, ddepth=-1, dx=0, dy=1, ksize=3)
-# print(sobel)
 
 # 利用 LBP 特徵來做出 markers
 road_lbp = lbp(gray)
 # cv2.imshow("road_lbp", road_lbp)
 
 
-fg = compare(road_lbp, sample=(880, 100), high=64, width=32, condi=0.84)
+fg = compare(road_lbp, sample=(880, 90), high=64, width=32, condi=0.84)
 # print(np.unique(fg, return_counts=True))
 # cv2.imshow("fg", fg)
 
 # watershed
-blur = cv2.GaussianBlur(gray, (5, 5), 0)
-_, thres = cv2.threshold(blur, 0, 255, cv2.THRESH_OTSU+cv2.THRESH_BINARY_INV)
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-mb = cv2.morphologyEx(thres, cv2.MORPH_OPEN, kernel, iterations=2)
-bg = cv2.dilate(mb, kernel, iterations=3)
+# blur = cv2.GaussianBlur(gray, (5, 5), 0)
+# _, thres = cv2.threshold(blur, 0, 255, cv2.THRESH_OTSU+cv2.THRESH_BINARY_INV)
+# kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+# mb = cv2.morphologyEx(thres, cv2.MORPH_OPEN, kernel, iterations=2)
+# bg = cv2.dilate(mb, kernel, iterations=3)
 # cv2.imshow("bg", bg)
 
-unknown = cv2.subtract(bg, fg)
+# unknown = cv2.subtract(bg, fg)
 _, markers = cv2.connectedComponents(fg)
-# print(np.unique(markers, return_counts=True))
+print(np.unique(markers, return_counts=True))
 markers = cv2.watershed(road, markers=markers)
 # markers = markers + 1
 # markers[unknown == 255] = 0
 road[markers == -1] = [0, 0, 0]
-# print(road[markers == 1])
 # cv2.imshow("watershed", road)
 
 # draw
@@ -167,6 +160,6 @@ color_block[markers == 3] = [152, 251, 152]
 result = cv2.addWeighted(road, 1, color_block, 0.8, 0)
 
 cv2.imshow("result", result)
-cv2.imwrite("./road/road_lbp_watershed.png", result)
+# cv2.imwrite("./road/road_lbp_watershed.png", result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
