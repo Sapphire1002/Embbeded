@@ -140,7 +140,7 @@ bg = cv2.dilate(mb, kernel, iterations=3)
 # cv2.imshow("bg", bg)
 
 unknown = cv2.subtract(bg, fg)
-cv2.imshow("unknown", unknown)
+# cv2.imshow("unknown", unknown)
 
 _, markers = cv2.connectedComponents(fg)
 print(np.unique(markers, return_counts=True))
