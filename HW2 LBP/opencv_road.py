@@ -39,7 +39,7 @@ blur = cv2.GaussianBlur(gray, (5, 5), 0)
 #     if cv2.waitKey(1) == ord('q'):
 #         break
 
-# test canny
+# test
 # edge_test = cv2.Canny(gray, 150, 255)
 # output_img(edge_test, text='./road/gray_canny_150_255')
 
@@ -61,9 +61,25 @@ sobel = cv2.Sobel(gray, ddepth=-1, dx=1, dy=0, ksize=3)
 
 # threshold
 _, thres = cv2.threshold(sobel, 30, 255, cv2.THRESH_BINARY)
-# output_img(thres, text='./road/gray_thres_30_255')
+# output_img(thres, text='./road/my_gray_thres_30_255')
 
-# line detection: HoughLines or HoughLinesP
+# line detection: HoughLines, HoughLinesP
+# line_thres = 180
+# lines = cv2.HoughLines(thres, 1, np.pi/180, line_thres)
+# print(lines.shape)
+#
+# for line in lines:
+#     for rho, theta in line:
+#         a = np.cos(theta)
+#         b = np.sin(theta)
+#         x0 = a * rho
+#         y0 = b * rho
+#         x1 = int(x0 + 250*(-b))
+#         x2 = int(x0 - 250*(-b))
+#         y1 = int(y0 + 250*a)
+#         y2 = int(y0 - 250*a)
+#         cv2.line(road, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
 # adjustment HoughLinesP
 # cv2.namedWindow("HoughLinesP", cv2.WINDOW_NORMAL)
 # cv2.createTrackbar("line_thres", "HoughLinesP", 100, 500, nothing)
@@ -105,19 +121,28 @@ line_thres = 375
 min_line = 489
 max_gap = 60
 linesP = cv2.HoughLinesP(thres, 1, np.pi/180, threshold=line_thres, minLineLength=min_line, maxLineGap=max_gap)
-print(linesP.shape)
-print(linesP)
+# print(linesP.shape)
+# print(linesP)
 
-crop = road.copy()
-for line in linesP:
-    for x1, y1, x2, y2 in line:
-        cv2.line(road, (x1, y1), (x2, y2), (255, 0, 0), 5)
-# [[[509 629 998 857]]
-#
-#  [[  3 843 509 628]]]
 
 # cropped image
+# LP (y = mx + b)
+m = [0] * linesP.shape[0]
+b = [0] * linesP.shape[0]
+crop = np.zeros(road.shape, dtype=np.uint8)
 
+for index, line in enumerate(linesP):
+    for x1, y1, x2, y2 in line:
+        cv2.line(road, (x1, y1), (x2, y2), (255, 0, 0), 5)
+        m[index] = ((y1 - y2) / (x1 - x2))
+        b[index] = (y1 - m[index] * x1)
+
+y, x, _ = road.shape
+for j in range(0, y):
+    for i in range(0, x):
+        if (m[0] * i - j + b[0] <= 0) and (m[1] * i - j + b[1] <= 0):
+            crop[j, i] = road[j, i]
+output_img(crop, text="./road/road_result_crop")
 
 # last:
 # original -> gray -> sobel(ddpeth=-1, dx=1, dy=0, ksize=3) -> threshold(30, 255, THRESH_BINARY) ->

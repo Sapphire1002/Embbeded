@@ -99,6 +99,7 @@ class MyLBP(object):
         """處理 3x3 矩陣 二進制轉十進制
         以逆時針旋轉方式, 方向如下:
         右下, 右, 右上, 上, 左上, 左, 左下, 下
+
         考慮旋轉(10 進制表示):
         0: 0
         1: 128, 64, 32, 16, 8, 4, 2, 1
@@ -109,6 +110,7 @@ class MyLBP(object):
         6: 252, 126, 63, 159, 207, 231, 243, 249
         7: 254, 128, 191, 223, 239, 247, 251, 253
         8: 255
+
         不考慮旋轉:
         bits_matrix: 傳入 3x3 的二值矩陣
         return: lbp_value, 十進制整數
@@ -211,7 +213,7 @@ class MyLBP(object):
         return end - self.start
 
 
-path = "./road.jpg"
+path = "./road/road.jpg"
 road = cv2.imread(path)
 
 # use my lbp
@@ -221,12 +223,13 @@ road_gray = cv2.cvtColor(road, cv2.COLOR_BGR2GRAY)
 # step2 to 7:
 handle = MyLBP(road_gray)
 road_my_lbp = handle.lbp(rotate=False)
-handle.local_histogram(86, 6)
-handle.all_histogram()
+# handle.local_histogram(86, 5)
+# handle.all_histogram()
 result = handle.compare(86, 6)
-print("spend time: %.3f s" % handle.spend_time())
+# print("spend time: %.3f s" % handle.spend_time())
+# spend time:  17.367 s
 
-# output_img(result, text="./road/road_my_lbp_compare_result")
-# cv2.imshow("Result", road_my_lbp)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+output_img(result, text="./road/road_my_lbp_compare_result")
+# cv2.imshow("Result", result)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
