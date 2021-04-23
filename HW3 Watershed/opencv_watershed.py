@@ -25,7 +25,7 @@ markers = cv2.watershed(road, markers=markers)
 road[markers == -1] = [255, 0, 255]
 
 cv2.imshow("road", road)
-cv2.imwrite("./road/road_watershed.png", road)
+# cv2.imwrite("./road/road_watershed.png", road)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
