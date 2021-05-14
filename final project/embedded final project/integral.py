@@ -68,8 +68,9 @@ def get_road(cap, frame_time=-1):
     pass  # return or any handle
 
 
-# videos = read_videos('./video/test.mp4')
-# get_road(videos)
+if __name__ == '__main__':
+    videos = read_videos('./video/test.mp4')
+    get_road(videos)
 
 
 
