@@ -14,7 +14,6 @@ Public Class Form1
         End If
     End Sub
 
-
     Private Sub 抓取ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles 抓取ToolStripMenuItem.Click
         Dim original As Bitmap = PictureBox1.Image
         sobelTransform(PictureBox1.Image.Clone, 0)

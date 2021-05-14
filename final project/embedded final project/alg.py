@@ -37,7 +37,7 @@ def bit_to_int(matrix, r):
         [matrix[2*r, 0], matrix[2*r, r], matrix[2*r, 2*r]]
     ])
 
-    lbp_value = sum(weight * region)
+    lbp_value = np.sum(weight * region)
     return lbp_value
 
 
