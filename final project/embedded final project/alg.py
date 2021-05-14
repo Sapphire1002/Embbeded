@@ -102,3 +102,21 @@ def sobel(img):
 
     G = np.sqrt(gx * gx + gy * gy).astype(np.uint8)
     return G
+
+
+def compare(img, sample, length, width):
+    pass
+
+
+def search_roadLBP(img):
+    """
+    search_roadLBP(img): 尋找馬路材質
+    img:  輸入 lbp 轉換過的圖片
+    method: 假設馬路在圖片最底端的位置, 找出一個 block 的 LBP 值, 迭代圖片去搜尋出現次數最多的
+    return: block_road, 為最後比較結果時當成樣本
+    """
+    pass
+
+
+def auto_marker(img):
+    pass

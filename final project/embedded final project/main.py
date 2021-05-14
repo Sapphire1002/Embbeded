@@ -34,6 +34,21 @@ def read_videos(path, size=None, fps=30):
     return video
 
 
+def handle(img):
+    """
+    handle(img): 找到馬路範圍
+    img: 輸入 frame, 3 通道
+    method: gray > sobel > lbp > draw marker > watershed > split road region
+    return: 傳回馬路範圍
+    """
+
+    gray = alg.conv_to_gray(img)
+    sobel_img = alg.sobel(gray)
+    lbp_img = alg.lbp(gray)
+
+    pass
+
+
 def get_road(cap, frame_time=-1):
     """
     get_road(cap[, frame_time=-1]): 抓取馬路範圍

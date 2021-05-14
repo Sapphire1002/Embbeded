@@ -25,6 +25,7 @@ Public Class Form1
         Dim img_road As Bitmap = find_road(original, img_watershed)
         PictureBox1.Image = img_road : MsgBox("馬路抓取")
     End Sub
+
     Function find_road(ByVal original As Bitmap, ByVal img_watershed As Bitmap) As Bitmap
         Dim road As Bitmap = img_watershed.Clone
         For y = 0 To img_watershed.Height - 1
@@ -40,6 +41,8 @@ Public Class Form1
         Next
         Return road
     End Function
+
+
     Function watershed(ByVal img_marker As Bitmap) As Bitmap
         Dim img_marker_temp As Bitmap = img_marker.Clone
         For water = 50 To 255
@@ -92,6 +95,7 @@ Public Class Form1
         Next
         Return img_marker_temp
     End Function
+
     Function auto_marker(ByVal img_lbp As Bitmap) As Bitmap
         Dim block_road() As Integer = search_roadLBP(img_lbp) '馬路的材質標準
         Dim marker As Bitmap = img_lbp.Clone '將lbp上色用
@@ -195,6 +199,7 @@ Public Class Form1
         Next
         Return block_road
     End Function
+
     Function check(compare() As Integer, roi() As Integer) As Boolean '容錯檢查，檢查兩BLOCK是否相似
         Dim c As Integer = fault '容錯值
         For i = 0 To UBound(compare)
@@ -205,6 +210,7 @@ Public Class Form1
         Next
         Return True
     End Function
+
     Function findMaxIndex(roi() As Integer) As Integer() '找出使用者輸入多少"精度"個的最大值
         Dim index(sample) As Integer
         Dim max As Integer = 0
@@ -225,3 +231,5 @@ Public Class Form1
     End Function
 
 End Class
+
+
