@@ -108,7 +108,7 @@ def compare(img, sample, length, width):
     pass
 
 
-def search_roadLBP(img):
+def search_road(img):
     """
     search_roadLBP(img): 尋找馬路材質
     img:  輸入 lbp 轉換過的圖片

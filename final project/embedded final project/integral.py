@@ -71,15 +71,5 @@ def get_road(cap, frame_time=-1):
 # videos = read_videos('./video/test.mp4')
 # get_road(videos)
 
-path2 = 'C:\\Users\\iris2\\Desktop\\embbeded\\final project\\embedded final project\\road.png'
-test_img = cv2.imread(path2)
-img_gray = alg.conv_to_gray(test_img)
-img_lbp = alg.lbp(img_gray, 1)
-ori_gray = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-ori_lbp = alg.lbp(ori_gray, 1)
-cv2.imshow('3', img_lbp)
-cv2.imshow('ori', ori_lbp)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 
 
