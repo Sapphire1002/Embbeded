@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 
-# step 1 O(1)
+# step 1
 def preprocess(curr_frame, size=(640, 480), thres_condi=0.32):
     """
     function:
@@ -51,7 +51,7 @@ def preprocess(curr_frame, size=(640, 480), thres_condi=0.32):
     return gray, frame_pre
 
 
-# step 2 O(n)
+# step 2
 def handle_sample(gray_img, pre_img, block_size=(20, 60)):
     """
     function:
@@ -99,7 +99,7 @@ def handle_sample(gray_img, pre_img, block_size=(20, 60)):
     return sample, coord
 
 
-# step 3 O(n^2)
+# step 3
 def calc_lbp(img):
     """
     function:
@@ -204,7 +204,7 @@ def main(path, frame_step=1):
 
 
 if __name__ == '__main__':
-    file = 'E:\\MyProgramming\\Python\\Project\\implement\\embedded final project\\video\\Edit_video_4.mp4'
+    file = 'E:\\MyProgramming\\Python\\Project\\implement\\embedded final project\\video\\Edit_video_3.mp4'
     frame_cnt = 5
 
     main(file, frame_cnt)
