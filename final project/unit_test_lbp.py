@@ -55,7 +55,7 @@ def preprocess(curr_frame, size=(640, 480), thres_condi=0.32):
 def handle_sample(gray_img, pre_img, block_size=(20, 60)):
     """
     function:
-        handle_sample(gray_img, pre_img[, block_size=(20, 60)]):
+        handle_sample(gray_img, pre_img[, block_size=(20, 60)]): 尋找馬路材質的標準樣本
 
     parameter:
         gray_img: 輸入灰階圖像
@@ -63,7 +63,7 @@ def handle_sample(gray_img, pre_img, block_size=(20, 60)):
         block_size: 輸入一個 block_size 的大小(width, high), tuple
 
     method:
-        1. target -> 切分成 block 後默認處理圖片的倒數第二行
+        1. target -> 切分成 block 後默認處理圖片的倒數第三行
         2. 以 0 的值最多的當成 LBP 的 sample
         (經過二值化處理後, 馬路相對數值為 0 的部分最多)
         (取值的時候避免邊界會造成影響, 因此只計算 第二塊到倒數第二塊)
@@ -204,7 +204,7 @@ def main(path, frame_step=1):
 
 
 if __name__ == '__main__':
-    file = 'E:\\MyProgramming\\Python\\Project\\implement\\embedded final project\\video\\Edit_video_3.mp4'
+    file = './video/school_video_input_13.mp4'
     frame_cnt = 5
 
     main(file, frame_cnt)
