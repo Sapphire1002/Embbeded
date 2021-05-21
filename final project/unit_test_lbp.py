@@ -147,6 +147,7 @@ def handle_LBP(gray_img, sample, coord, similar_condi=0.85):
     parameter:
         gray_img: 調整大小後的灰階圖像
         sample: 做為比對 LBP 的樣本
+        coord: 該 sample 位於原始圖像的位置 
         similar_condi: 相似度的門檻值, 默認 0.85, 範圍[0, 1), float
 
     method:
