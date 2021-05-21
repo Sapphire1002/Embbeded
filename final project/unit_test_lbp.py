@@ -60,17 +60,17 @@ def handle_sample(gray_img, pre_img, block_size=(20, 60)):
     parameter:
         gray_img: 輸入灰階圖像
         pre_img: 輸入經過預處理後的(二值化)圖像
-        block_size: 輸入一個 block_size 的大小(width, high), tuple
+        block_size: 輸入一個 block_size (width, high)的大小, 默認(20, 60), tuple
 
     method:
-        1. target -> 切分成 block 後默認處理圖片的倒數第三行
+        1. target -> 切分成 block 後默認處理圖片的倒數第二行
         2. 以 0 的值最多的當成 LBP 的 sample
         (經過二值化處理後, 馬路相對數值為 0 的部分最多)
         (取值的時候避免邊界會造成影響, 因此只計算 第二塊到倒數第二塊)
 
     return:
         sample: 輸出灰階圖像, 大小為 block_size 的值
-        coord: sample 位於原始圖像的哪個位置, (y_coord, x_coord), 皆為左上角的座標, tuple
+        coord: sample 位於原始圖像的位置, (y_coord, x_coord), 皆為左上角的座標, tuple
         (供 計算 LBP 時使用)
     """
 
@@ -147,11 +147,12 @@ def handle_LBP(gray_img, sample, coord, similar_condi=0.85):
     parameter:
         gray_img: 調整大小後的灰階圖像
         sample: 做為比對 LBP 的樣本
-        similar_condi: 相似度的門檻值
+        similar_condi: 相似度的門檻值, 默認 0.85, 範圍[0, 1), float
 
     method:
         1. 計算 sample LBP 值
         (單元測試, 被當成 sample 的區域畫在影片上)
+
     return:
         markers: 二值化的圖像, 用來當成 watershed 的 markers
     """
@@ -171,7 +172,7 @@ def main(path, frame_step=1):
 
     parameter:
         path: 影片路徑, str
-        frame_step: 取第 frame_step 幀數, int(fps >= frame_step > 0)
+        frame_step: 取每隔frame_step 幀數, 默認1, 範圍 fps >= frame_step > 0, int
 
     return: None
     """
