@@ -261,7 +261,7 @@ def main(path, frame_step=1):
 
 
 if __name__ == '__main__':
-    file = './video/ATN-1036_CH0120190624105513-R.avi'
+    file = './video/2018-12-21_09-22-53_1811-Cam2.avi'
     frame_cnt = 1
 
     main(file, frame_cnt)

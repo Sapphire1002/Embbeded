@@ -21,7 +21,6 @@ def handle(img_gray, lbp_img, block_size):
     for index in range(0, len(blocks)):
         pass
 
-
     # print(np.unique(blocks, return_counts=True))
     cv2.imshow('blocks', blocks[0])
 
@@ -29,7 +28,6 @@ def handle(img_gray, lbp_img, block_size):
     # 先試用一個
     # hist = cv2.calcHist([blocks[0]], [0], None, [256], [0, 255])
     # cv2.imshow('block[0] hist', hist)
-
 
 
 path = 'E:\\MyProgramming\\Python\\Project\\implement\\embedded final project\\video\\Edit_video_4.mp4'

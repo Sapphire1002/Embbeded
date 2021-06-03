@@ -1,6 +1,7 @@
 from skimage.feature import local_binary_pattern as lbp
 import numpy as np
 import cv2
+import time
 
 
 # step 1
@@ -30,6 +31,7 @@ def preprocess(curr_frame, size=(640, 480), thres_condi=0.2):
 
     return:
         frame: 傳回重塑過後的 3 通道圖片
+        frame_sobel: 傳回 sobel 後的圖片
         frame_pre: 傳回二值化的圖片
     """
 
@@ -58,23 +60,22 @@ def preprocess(curr_frame, size=(640, 480), thres_condi=0.2):
     frame = cv2.resize(frame_roi, size, cv2.INTER_AREA)
 
     # 3.
-    frame_ori = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # 4.
-    blur = cv2.GaussianBlur(frame_ori, (5, 5), 0)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
     # 5.
-    sobel = cv2.Sobel(blur, ddepth=-1, dx=1, dy=1, ksize=5)
-    cv2.imshow('sobel', sobel)
-    frame_pre = sobel.copy()
+    frame_sobel = cv2.Sobel(blur, ddepth=-1, dx=1, dy=1, ksize=5)
+    frame_pre = frame_sobel.copy()
 
     # 6.
-    thres = ((np.max(sobel) - np.min(sobel)) * thres_condi).astype(np.uint8)
+    thres = ((np.max(frame_sobel) - np.min(frame_sobel)) * thres_condi).astype(np.uint8)
 
-    frame_pre[sobel >= thres] = 255
-    frame_pre[sobel < thres] = 0
+    frame_pre[frame_sobel >= thres] = 255
+    frame_pre[frame_sobel < thres] = 0
 
-    return frame, frame_pre
+    return frame, frame_sobel, frame_pre
 
 
 # step 2
@@ -113,17 +114,7 @@ def handle_sample(ori_img, pre_img, block_size=(20, 60)):
     blocks_up = np.split(target_up, (x - 2 * width) // width, axis=1)
     blocks_down = np.split(target_down, (x - 2 * width) // width, axis=1)
 
-    # 2. hsv 部分 暫且先保留, 避免之後會用到
-    # ori_target_up = ori_img[center_y - height: center_y, width:x - width]  # 彩色圖像
-    # hsv_up = cv2.cvtColor(ori_target_up, cv2.COLOR_BGR2HSV)
-    # cv2.imshow("hsv_up", hsv_up)
-    # ori_target_up = np.split(ori_target_up, (x - 2 * width) // width, axis=1)
-
-    # ori_target_down = ori_img[center_y: center_y + height, width:x - width]
-    # hsv_down = cv2.cvtColor(ori_target_down, cv2.COLOR_BGR2HSV)
-    # cv2.imshow("hsv_down", hsv_down)
-    # ori_target_down = np.split(ori_target_down, (x - 2 * width) // width, axis=1)
-
+    # 2.
     # 先找出 0 的數量並且儲存成列表
     val_up_0 = list()
     val_down_0 = list()
@@ -164,10 +155,12 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
         2. 相似度比較去除最不相似的 sample
         (採取逐一比較的方式, 去除相似度最低的, 其餘的都當成 markers)
         (相似度最低的判斷為 當前相似個數 - 最小相似個數 > 全距 // 2)
-        3. 侵蝕一次
+        3. 天空全部都標成 marker(最上面一行)
+        4. 侵蝕一次
 
     return:
         markers: 二值化的圖像, 用來當成 watershed 的 markers
+        markers_coord: 儲存 markers 的左上角座標
     """
 
     markers = np.zeros(gray_img.shape, np.uint8)
@@ -175,8 +168,6 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
 
     # 儲存 每張 LBP 值的 直方圖列表
     hist_list = list()
-
-    # 侵蝕一次, 再去 watershed
 
     for coord in sample_coord:
         y, x = coord
@@ -191,7 +182,7 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
         cv2.rectangle(gray_img, (x, y), (x + width, y + height), (255, 255, 255), 5)
         # cv2.imshow('sample region', gray_img)
 
-    print('hist 個數: ', len(hist_list))
+    # print('hist 個數: ', len(hist_list))
 
     # 2.
     # 存放相似度結果的列表
@@ -203,70 +194,78 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
             if sim >= similar_condi:
                 cnt += 1
         similar_list.append(cnt)
-    print("similar list: ", similar_list, "個數: ", len(similar_list))
+    # print("similar list: ", similar_list, "個數: ", len(similar_list))
 
     # 當前的個數 - 最小相似個數 <= sample 數量 // 2
+    markers_coord = list()  # 儲存最後被當成 markers 的座標
     for index, coord in enumerate(sample_coord):
         y, x = coord
         if similar_list[index] - min(similar_list) <= (max(similar_list) - min(similar_list)) // 2:
+            markers_coord.append((y, x))
             markers[y:y+height, x:x+width] = 255
             cv2.rectangle(gray_img, (x, y), (x + width, y + height), (0, 0, 0), 2)
 
-        pass
-    cv2.imshow('sample region', gray_img)
+    # 加上天空的座標
+    for x in range(0, gray_img.shape[1], width):
+        markers_coord.append((0, x))
+        markers[10:10+height, x+width:x-width] = 255
+
+    # cv2.imshow('sample region', gray_img)
+    # print(len(markers_coord))
 
     # 3.
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     markers = cv2.erode(markers, kernel, iterations=1)
-    cv2.imshow('markers', markers)
-    return markers
+    # cv2.imshow('markers', markers)
+    return markers_coord, markers
 
 
 # step 4
-def handle_watershed(ori_img, fg):
+def handle_watershed(ori_img, img_sobel, marker, marker_coord, block_size):
     """
     function(ori_img, markers): 根據 markers 做 watershed
 
     parameter:
         ori_img: 調整大小後的 3 通道圖像
-        fg: 二值化圖像
+        img_sobel: sobel 後的圖片
+        marker: 二值化圖像
+        marker_coord: 儲放 marker 座標
+        block_size: 設定的 size 大小
 
     method:
-        waiting
+        1. marker 做成 connectedComponents()
+        (會得到每個區域的標記)
+        2. 每個區域根據 sobel 數值判斷是否相連(wait)
+        3. watershed
 
     return:
-        None (要對應光流的輸入)
+        res: Watershed 出來的結果
+        ori_img: 裁減過後的原始圖像(對應光流的輸入)
     """
 
-    gray = cv2.cvtColor(ori_img, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (9, 9), 0)
-    _, thres = cv2.threshold(blur, 0, 255, cv2.THRESH_OTSU+cv2.THRESH_BINARY_INV)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    mb = cv2.morphologyEx(thres, cv2.MORPH_OPEN, kernel, iterations=1)
-    bg = cv2.dilate(mb, kernel, iterations=2)
-    cv2.imshow('bg', bg)
+    # 1.
+    _, markers = cv2.connectedComponents(marker)
+    markers = cv2.watershed(ori_img, markers)
+    # sign, count = np.unique(markers, return_counts=True)
+    # print(sign, count)
 
-    unknown = cv2.subtract(fg, bg)
-    _, marker = cv2.connectedComponents(fg)
-    marker = cv2.watershed(ori_img, markers=marker)
-    # marker[unknown == 255] = 0
-    ori_img[marker == -1] = [0, 0, 0]
-    cv2.imshow('unknown', unknown)
     color_block = np.zeros(ori_img.shape, np.uint8)
-
-    region, count = np.unique(marker, return_counts=True)
-    print(len(region))
-
-    # 產生 隨機 len(region) 數量的顏色, 只做一次
-    # np.random.seed(42)
-
-    for r in range(0, len(region)):
-        color_rnd = np.random.randint(0, 255, 3)
-        color_block[marker == r] = color_rnd
-
+    color_block[markers == -1] = [0, 0, 0]
+    color_block[markers == 1] = [192, 62, 255]
+    color_block[markers != 1] = [130, 130, 130]
     res = cv2.addWeighted(ori_img, 1, color_block, 0.8, 0)
-    cv2.imshow('res', res)
-    pass
+    # cv2.imshow('res', res)
+
+    # 2. 找 sobel 數值 標記區域的 sobel 數值(wait)
+    # for c in range(0, len(sign)):
+    #     color_rnd = np.random.randint(0, 255, (1, 3))
+    #     color_block[markers == c] = color_rnd
+    #
+
+    # last: 切掉背景區域傳給光流輸入
+    ori_img[markers == 1] = [0, 0, 0]
+    # cv2.imshow('last', ori_img)
+    return res, ori_img
 
 
 def main(path, frame_step=1):
@@ -284,6 +283,7 @@ def main(path, frame_step=1):
     video = cv2.VideoCapture(path)
 
     while True:
+        st = time.time()
         ret, frame = video.read()
 
         if not ret:
@@ -293,14 +293,31 @@ def main(path, frame_step=1):
             # break
 
         cnt += 1
-        frame, frame_pre = preprocess(frame)
+        frame, sobel, frame_pre = preprocess(frame)  # preprocess
         cv2.imshow('frame', frame)
-        cv2.imshow('preprocess', frame_pre)
+        # cv2.imshow('preprocess', frame_pre)
 
         if cnt % frame_step == 0:
             gray, coord, block_size = handle_sample(frame, frame_pre, (20, 60))  # handle sample
-            markers = handle_LBP(gray, coord, block_size)  # handle LBP
-            handle_watershed(frame, markers)  # handle watershed
+            markers_coord, markers = handle_LBP(gray, coord, block_size)  # handle LBP
+            res, last = handle_watershed(frame, sobel, markers, markers_coord, block_size)  # handle watershed
+            end = time.time()
+
+            # 顯示輸出結果以及計算時間的文字
+            handle_time = round(end - st, 3)
+            handle_fps = int(1 // (end - st))
+            str_handle_time = "handle time(s/frame): " + str(handle_time) + 's'
+            str_handle_fps = 'handle(' + str(handle_fps) + 'frame/s)'
+            cv2.putText(frame, str_handle_time, (10, 20), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (255, 255, 255), 1)
+            cv2.putText(
+                frame, str_handle_fps, (10, 40),
+                cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (0, 255, 255), 1
+            )
+
+            # cv2.imshow('frame', frame)
+            cv2.imshow('res', res)
+            cv2.imshow('last', last)
+
             cnt = 0
 
         if cv2.waitKey(1) == ord('q'):
@@ -312,8 +329,9 @@ def main(path, frame_step=1):
 
 
 if __name__ == '__main__':
-    file = './video/ATN-1036_CH0120190624105513-R.avi'
+    file = './video/2018-12-21_09-22-53_1811-Cam2.avi'
     frame_cnt = 1
 
     main(file, frame_cnt)
 
+# 到時候寫成 class 形式(可以減少一堆座標及大小的參數傳遞, 也可以減少 list 存放的空間)
