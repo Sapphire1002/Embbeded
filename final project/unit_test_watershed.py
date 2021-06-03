@@ -160,7 +160,6 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
 
     return:
         markers: 二值化的圖像, 用來當成 watershed 的 markers
-        markers_coord: 儲存 markers 的左上角座標
     """
 
     markers = np.zeros(gray_img.shape, np.uint8)
@@ -197,17 +196,17 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
     # print("similar list: ", similar_list, "個數: ", len(similar_list))
 
     # 當前的個數 - 最小相似個數 <= sample 數量 // 2
-    markers_coord = list()  # 儲存最後被當成 markers 的座標
+    # markers_coord = list()  # 儲存最後被當成 markers 的座標
     for index, coord in enumerate(sample_coord):
         y, x = coord
         if similar_list[index] - min(similar_list) <= (max(similar_list) - min(similar_list)) // 2:
-            markers_coord.append((y, x))
+            # markers_coord.append((y, x))
             markers[y:y+height, x:x+width] = 255
             cv2.rectangle(gray_img, (x, y), (x + width, y + height), (0, 0, 0), 2)
 
     # 加上天空的座標
     for x in range(0, gray_img.shape[1], width):
-        markers_coord.append((0, x))
+        # markers_coord.append((0, x))
         markers[10:10+height, x+width:x-width] = 255
 
     # cv2.imshow('sample region', gray_img)
@@ -217,26 +216,24 @@ def handle_LBP(gray_img, sample_coord, block_size=(20, 60), similar_condi=0.85):
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     markers = cv2.erode(markers, kernel, iterations=1)
     # cv2.imshow('markers', markers)
-    return markers_coord, markers
+    return markers
 
 
 # step 4
-def handle_watershed(ori_img, img_sobel, marker, marker_coord, block_size):
+def handle_watershed(ori_img, marker):
     """
     function(ori_img, markers): 根據 markers 做 watershed
 
     parameter:
         ori_img: 調整大小後的 3 通道圖像
-        img_sobel: sobel 後的圖片
         marker: 二值化圖像
-        marker_coord: 儲放 marker 座標
-        block_size: 設定的 size 大小
 
     method:
         1. marker 做成 connectedComponents()
         (會得到每個區域的標記)
-        2. 每個區域根據 sobel 數值判斷是否相連(wait)
-        3. watershed
+        2. watershed
+        3. 將天空和其他標記區域區分顏色
+        last: 切割背景區域傳給光流輸入
 
     return:
         res: Watershed 出來的結果
@@ -245,25 +242,22 @@ def handle_watershed(ori_img, img_sobel, marker, marker_coord, block_size):
 
     # 1.
     _, markers = cv2.connectedComponents(marker)
-    markers = cv2.watershed(ori_img, markers)
-    # sign, count = np.unique(markers, return_counts=True)
+
+    # 2.
+    sign = cv2.watershed(ori_img, markers)
+    # sign, count = np.unique(sign, return_counts=True)
     # print(sign, count)
 
+    # 3.
     color_block = np.zeros(ori_img.shape, np.uint8)
-    color_block[markers == -1] = [0, 0, 0]
-    color_block[markers == 1] = [192, 62, 255]
-    color_block[markers != 1] = [130, 130, 130]
+    color_block[sign == -1] = [0, 0, 0]
+    color_block[sign == 1] = [192, 62, 255]
+    color_block[sign != 1] = [130, 130, 130]
     res = cv2.addWeighted(ori_img, 1, color_block, 0.8, 0)
     # cv2.imshow('res', res)
 
-    # 2. 找 sobel 數值 標記區域的 sobel 數值(wait)
-    # for c in range(0, len(sign)):
-    #     color_rnd = np.random.randint(0, 255, (1, 3))
-    #     color_block[markers == c] = color_rnd
-    #
-
     # last: 切掉背景區域傳給光流輸入
-    ori_img[markers == 1] = [0, 0, 0]
+    ori_img[sign == 1] = [0, 0, 0]
     # cv2.imshow('last', ori_img)
     return res, ori_img
 
@@ -299,8 +293,8 @@ def main(path, frame_step=1):
 
         if cnt % frame_step == 0:
             gray, coord, block_size = handle_sample(frame, frame_pre, (20, 60))  # handle sample
-            markers_coord, markers = handle_LBP(gray, coord, block_size)  # handle LBP
-            res, last = handle_watershed(frame, sobel, markers, markers_coord, block_size)  # handle watershed
+            markers = handle_LBP(gray, coord, block_size)  # handle LBP
+            res, last = handle_watershed(frame, markers)  # handle watershed
             end = time.time()
 
             # 顯示輸出結果以及計算時間的文字
