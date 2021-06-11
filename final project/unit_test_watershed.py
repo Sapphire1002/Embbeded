@@ -252,8 +252,8 @@ def handle_watershed(ori_img, marker):
     color_block = np.zeros(ori_img.shape, np.uint8)
     color_block[sign == -1] = [0, 0, 0]
     color_block[sign == 1] = [192, 62, 255]
-    color_block[sign != 1] = [130, 130, 130]
-    res = cv2.addWeighted(ori_img, 1, color_block, 0.8, 0)
+    color_block[sign != 1] = [0, 255, 0]
+    res = cv2.addWeighted(ori_img, 1, color_block, 0.4, 0)
     # cv2.imshow('res', res)
 
     # last: 切掉背景區域傳給光流輸入
@@ -289,7 +289,7 @@ def main(path, frame_step=1):
         cnt += 1
         frame, sobel, frame_pre = preprocess(frame)  # preprocess
         cv2.imshow('frame', frame)
-        # cv2.imshow('preprocess', frame_pre)
+        cv2.imshow('preprocess', frame_pre)
 
         if cnt % frame_step == 0:
             gray, coord, block_size = handle_sample(frame, frame_pre, (20, 60))  # handle sample
