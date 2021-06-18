@@ -261,6 +261,7 @@ def main(path, frame_step=1):
 
     cnt = 0
     video = cv2.VideoCapture(path)
+    all_frame = list()
 
     while True:
         st = time.time()
@@ -268,9 +269,9 @@ def main(path, frame_step=1):
 
         if not ret:
             # repeat
-            video = cv2.VideoCapture(path)
-            continue
-            # break
+            # video = cv2.VideoCapture(path)
+            # continue
+            break
 
         cnt += 1
         frame, gray, frame_pre = preprocess(frame)  # preprocess
@@ -282,20 +283,21 @@ def main(path, frame_step=1):
             markers = handle_LBP(gray, coord, block_size)  # handle LBP
             res, last = handle_watershed(frame, markers)  # handle watershed
             end = time.time()
+            all_frame.append(last)
 
             # 顯示輸出結果以及計算時間的文字
-            handle_time = round(end - st, 3)
-            handle_fps = int(1 // (end - st))
-            str_handle_time = "handle time(s/frame): " + str(handle_time) + 's'
-            str_handle_fps = 'handle(' + str(handle_fps) + 'frame/s)'
-            cv2.putText(
-                frame, str_handle_time, (10, 20),
-                cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (255, 255, 255), 1
-            )
-            cv2.putText(
-                frame, str_handle_fps, (10, 40),
-                cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (0, 255, 255), 1
-            )
+            # handle_time = round(end - st, 3)
+            # handle_fps = int(1 // (end - st))
+            # str_handle_time = "handle time(s/frame): " + str(handle_time) + 's'
+            # str_handle_fps = 'handle(' + str(handle_fps) + 'frame/s)'
+            # cv2.putText(
+            #     frame, str_handle_time, (10, 20),
+            #     cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (255, 255, 255), 1
+            # )
+            # cv2.putText(
+            #     frame, str_handle_fps, (10, 40),
+            #     cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.7, (0, 255, 255), 1
+            # )
 
             cv2.imshow('res', res)
             cv2.imshow('last', last)
@@ -307,10 +309,21 @@ def main(path, frame_step=1):
         if cv2.waitKey(1) == ord('p'):
             while cv2.waitKey(0) != ord(' '):
                 pass
+    return all_frame
+
+
+def write_video(frames):
+    # 將結果輸出成影片
+    y, x, _ = frames[0].shape
+    video_write = cv2.VideoWriter("./last.avi", cv2.VideoWriter_fourcc(*'MJPG'), 30, (x, y))
+    for i in frames:
+        video_write.write(i)
+    video_write.release()
 
 
 if __name__ == '__main__':
     file = './video/2018-12-21_09-22-53_1811-Cam2.avi'
     frame_cnt = 1
-    main(file, frame_cnt)
+    all_frames = main(file, frame_cnt)
+    write_video(all_frames)
 
