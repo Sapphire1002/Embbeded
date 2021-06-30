@@ -32,7 +32,6 @@ print("Image size: %d x %d, %d" % (width, height, fps))
 
 ret, im = video.read()
 old_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-all_frames = list()
 
 while video.isOpened():
     ret, im = video.read()
@@ -44,7 +43,6 @@ while video.isOpened():
     new_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     flow = cv2.calcOpticalFlowFarneback(old_gray, new_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
     old_gray = new_gray
-    all_frames.append(draw_flow(new_gray, flow, 5))
 
     if cv2.waitKey(1) == ord('q'):
         break
@@ -54,7 +52,3 @@ while video.isOpened():
 video.release()
 cv2.destroyAllWindows()
 
-# video_write = cv2.VideoWriter('./flow_test.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (width, height))
-# for i in all_frames:
-#     video_write.write(i)
-# video_write.release()

@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-def draw_flow(gray, flow, step=1):
+def draw_flow(gray, flow, step=5):
     h,w = gray.shape[:2]
     y,x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2, -1).astype(int)
     fx,fy = flow[y, x].T
@@ -42,11 +42,11 @@ height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 FPS = int(cap.get(cv2.CAP_PROP_FPS))
 print("Image Size: %d x %d , %d" % (width, height, FPS))
 
-ret,im = cap.read() #第一幀
+ret,im = cap.read() # 第一幀
 old_gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY) #灰階化
  
-fourcc = 0x00000021  # cv2.VideoWriter_fourcc('H', '2', '6', '4')
-videoWriter = cv2.VideoWriter('C:/Users/Yeeder/Desktop/road_detection/Farneback_output_town.mp4', fourcc , 30, (width, height)) # 建立 VideoWriter 物件，輸出影片至 output.avi
+# fourcc = 0x00000021  # cv2.VideoWriter_fourcc('H', '2', '6', '4')
+# videoWriter = cv2.VideoWriter('C:/Users/Yeeder/Desktop/road_detection/Farneback_output_town.mp4', fourcc , 30, (width, height)) # 建立 VideoWriter 物件，輸出影片至 output.avi
 
 while (cap.isOpened()):
     ret,im = cap.read() #第二幀
@@ -58,13 +58,16 @@ while (cap.isOpened()):
         #cv2.imshow('threshold',thresh)
         flow = cv2.calcOpticalFlowFarneback(old_gray, new_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0) # compute flow
         old_gray = new_gray # 第一幀 = 第二幀
-        videoWriter.write(draw_flow(new_gray,flow)) #輸出影片 要等...
-        #cv2.imshow('Optical flow',draw_flow(new_gray,flow))
-        if cv2.waitKey(10) == 27:
+        # videoWriter.write(draw_flow(new_gray,flow)) #輸出影片 要等...
+        cv2.imshow('Optical flow',draw_flow(new_gray,flow))
+        if cv2.waitKey(1) == ord('q'):
             break
+        elif cv2.waitKey(1) == ord('p'):
+            while cv2.waitKey(1) != ord(' '):
+                pass
     else :
         break
 
 cap.release()
-videoWriter.release()
+# videoWriter.release()
 cv2.destroyAllWindows()

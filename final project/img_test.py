@@ -284,6 +284,6 @@ def main(path):
 
 
 if __name__ == '__main__':
-    file = './img/S__281657365.jpg'
+    file = './img/S__281657360.jpg'
     main(file)
 

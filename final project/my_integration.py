@@ -261,7 +261,8 @@ def main(path, frame_step=1):
 
     cnt = 0
     video = cv2.VideoCapture(path)
-    all_frame = list()
+    all_frames = list()
+    total_st = time.time()
 
     while True:
         st = time.time()
@@ -274,19 +275,33 @@ def main(path, frame_step=1):
             break
 
         cnt += 1
+        pre_time = time.time()
         frame, gray, frame_pre = preprocess(frame)  # preprocess
+        end_pre = time.time()
+        print("預處理時間: ", round(end_pre - pre_time, 3), '秒')
         cv2.imshow('frame', frame)
         cv2.imshow('preprocess', frame_pre)
 
         if cnt % frame_step == 0:
+            sample_time = time.time()
             coord, block_size = handle_sample(frame_pre, (20, 60))  # handle sample
+            end_sample = time.time()
+            print('找 sample 時間: ', round(end_sample - sample_time, 3), "秒")
+
+            lbp_time = time.time()
             markers = handle_LBP(gray, coord, block_size)  # handle LBP
+            end_lbp = time.time()
+            print('LBP 時間: ', round(end_lbp - lbp_time, 3), "秒")
+
+            watershed_time = time.time()
             res, last = handle_watershed(frame, markers)  # handle watershed
+            end_watershed = time.time()
+            print('Watershed 時間: ', round(end_watershed - watershed_time, 3), "秒")
             end = time.time()
-            all_frame.append(last)
 
             # 顯示輸出結果以及計算時間的文字
-            # handle_time = round(end - st, 3)
+            handle_time = round(end - st, 3)
+            print("當前幀數的執行時間: ", handle_time, "秒")
             # handle_fps = int(1 // (end - st))
             # str_handle_time = "handle time(s/frame): " + str(handle_time) + 's'
             # str_handle_fps = 'handle(' + str(handle_fps) + 'frame/s)'
@@ -302,6 +317,7 @@ def main(path, frame_step=1):
             cv2.imshow('res', res)
             cv2.imshow('last', last)
             cnt = 0
+            all_frames.append(last)
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -309,21 +325,23 @@ def main(path, frame_step=1):
         if cv2.waitKey(1) == ord('p'):
             while cv2.waitKey(0) != ord(' '):
                 pass
-    return all_frame
+    print("總共執行時間: ", round(time.time() - total_st, 3), "秒")
+    return all_frames
 
 
-def write_video(frames):
-    # 將結果輸出成影片
-    y, x, _ = frames[0].shape
-    video_write = cv2.VideoWriter("./last.avi", cv2.VideoWriter_fourcc(*'MJPG'), 30, (x, y))
-    for i in frames:
-        video_write.write(i)
-    video_write.release()
+def writer_video(frames_list):
+    y, x, _ = frames_list[0].shape
+    video_writer = cv2.VideoWriter('./cut_all.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (x, y))
+
+    for i in frames_list:
+        video_writer.write(i)
+    video_writer.release()
+    pass
 
 
 if __name__ == '__main__':
-    file = './video/2018-12-21_09-22-53_1811-Cam2.avi'
+    file = './MOV00271_Trim.mp4'
     frame_cnt = 1
-    all_frames = main(file, frame_cnt)
-    write_video(all_frames)
+    frames = main(file, frame_cnt)
+    writer_video(frames)
 
